@@ -29,6 +29,8 @@
         <a href="https://www.youtube.com/watch?v=tyi8CNyjOhc&lc=Ugw1OS7z5QbW29RZCFZ4AaABAg" target='_blank'>
         <img src="https://img.shields.io/badge/Demo%20Video-%23FF0000.svg?logo=YouTube&logoColor=white">
         </a>
+        <a href="https://huggingface.co/spaces/PeiqingYang/MatAnyone" target='_blank'>
+        <img src="https://img.shields.io/badge/Demo-%F0%9F%A4%97%20Hugging%20Face-blue">
         </a>
         <img src="https://api.infinitescript.com/badgen/count?name=sczhou/MatAnyone2&ltext=Visitors&color=3977dd">
     </h4>
