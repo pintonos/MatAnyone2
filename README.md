@@ -47,10 +47,95 @@
 
 
 ## 📮 Update
+- [2026.03] Release inference codes and gradio demo.
 - [2025.12] This repo is created.
+
+
+## 🏄🏻‍♀️ TODO
+- [x] Release inference codes and gradio demo. 
+- [ ] Release evaluation codes.
+- [ ] Release training codes for video matting model.
+- [ ] Release checkpoint and training codes for quality evaluator model.
+- [ ] Release real-world video matting dataset **VMReal**.
+
 
 ## 🔎 Overview
 ![overall_structure](assets/matanyone1vs2.jpg)
+
+## 🔧 Installation
+1. Clone Repo
+    ```bash
+    git clone https://github.com/pq-yang/MatAnyone2
+    cd MatAnyone2
+    ```
+
+2. Create Conda Environment and Install Dependencies
+    ```bash
+    # create new conda env
+    conda create -n matanyone2 python=3.10 -y
+    conda activate matanyone2
+
+    # install python dependencies
+    pip install -e .
+    # [optional] install python dependencies for gradio demo
+    pip3 install -r hugging_face/requirements.txt
+    ```
+
+## 🔥 Inference
+
+### Download Model
+Download our pretrained model from [MatAnyone 2](https://github.com/pq-yang/MatAnyone2/releases/download/v1.0.0/matanyone2.pth) to the `pretrained_models` folder (pretrained model can also be automatically downloaded during the first inference).
+
+The directory structure will be arranged as:
+```
+pretrained_models
+   |- matanyone2.pth
+```
+
+### Quick Test
+We provide some examples in the [`inputs`](./inputs) folder. **For each run, we take a video and its first-frame segmenatation mask as input.** <u>The segmenation mask could be obtained from interactive segmentation models such as [SAM2 demo](https://huggingface.co/spaces/fffiloni/SAM2-Image-Predictor)</u>. For example, the directory structure can be arranged as:
+```
+inputs
+   |- video
+      |- test-sample1          # folder containing all frames
+      |- test-sample2.mp4      # .mp4, .mov, .avi
+   |- mask
+      |- test-sample1.png      # mask for targer person(s)
+      |- test-sample2.png    
+```
+Run the following command to try it out:
+
+```shell
+# intput format: video folder
+python inference_matanyone2.py -i inputs/video/test-sample1 -m inputs/mask/test-sample1.png
+
+# intput format: mp4
+python inference_matanyone2.py -i inputs/video/test-sample2.mp4 -m inputs/mask/test-sample2.png
+
+```
+The results will be saved in the `results` folder, including the foreground output video and the alpha output video. 
+- If you want to save the results as per-frame images, you can set `--save_image`.
+- If you want to set a limit for the maximum input resolution, you can set `--max_size`, and the video will be downsampled if min(w, h) exceeds. By default, we don't set the limit.
+
+## 🎪 Interactive Demo
+To get rid of the preparation for first-frame segmentation mask, we prepare a gradio demo on [hugging face](https://huggingface.co/spaces/PeiqingYang/MatAnyone2) and could also **launch locally**. Just drop your video/image, assign the target masks with a few clicks, and get the the matting results!
+
+*We integrate MatAnyone Series in the demo. [MatAnyone 2](https://github.com/pq-yang/MatAnyone2) is the default model. You can also choose [MatAnyone](https://github.com/pq-yang/MatAnyone) as your processing model in "Model Selection".*
+
+```shell
+cd hugging_face
+
+# install python dependencies
+pip3 install -r requirements.txt # FFmpeg required
+
+# launch the demo
+python app.py
+```
+
+By launching, an interactive interface will appear as follow.
+
+![overall_teaser](assets/teaser_demo.gif)
+
 
 ## 🛠️ Data Pipeline
 ![data_pipeline](assets/data_pipeline.jpg)
@@ -61,13 +146,28 @@
    If you find our repo useful for your research, please consider citing our paper:
 
    ```bibtex
-  @InProceedings{yang2025matanyone2,
+  @InProceedings{yang2026matanyone2,
       title     = {{MatAnyone 2}: Scaling Video Matting via a Learned Quality Evaluator},
       author    = {Yang, Peiqing and Zhou, Shangchen and Hao, Kai and Tao, Qingyi},
-      booktitle = {arXiv preprint arXiv:2512.11782},
+      booktitle = {CVPR},
+      year      = {2026}
+      }
+
+  @inProceedings{yang2025matanyone,
+      title     = {{MatAnyone}: Stable Video Matting with Consistent Memory Propagation},
+      author    = {Yang, Peiqing and Zhou, Shangchen and Zhao, Jixin and Tao, Qingyi and Loy, Chen Change},
+      booktitle = {CVPR},
       year      = {2025}
-}
+      }
    ```
+
+## 📝 License
+
+This project is licensed under <a rel="license" href="./LICENSE">NTU S-Lab License 1.0</a>. Redistribution and use should follow this license.
+
+## 👏 Acknowledgement
+
+This project is built upon [MatAnyone](https://github.com/pq-yang/MatAnyone) and [Cutie](https://github.com/hkchengrex/Cutie), with matting dataset files adapted from [RVM](https://github.com/PeterL1n/RobustVideoMatting). The interactive demo is adapted from [ProPainter](https://github.com/sczhou/ProPainter), leveraging segmentation capabilities from [Segment Anything Model](https://github.com/facebookresearch/segment-anything) and [Segment Anything Model 2](https://github.com/facebookresearch/sam2). Thanks for their awesome works!
 
 ## 📧 Contact
 
