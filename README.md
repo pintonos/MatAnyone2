@@ -49,7 +49,7 @@
 
 
 ## 📮 Update
-- [2026.03] Add uv and huggingface support for easy installation and usage.
+- [2026.03] Add uv, CLI, and huggingface support for easy installation and usage.
 - [2026.03] Release inference codes, evaluation codes, and gradio demo.
 - [2025.12] This repo is created.
 
@@ -129,8 +129,7 @@ python inference_matanyone2.py -i inputs/video/test-sample2.mp4 -m inputs/mask/t
 - If you want to save the results as per-frame images, you can set `--save-image`.
 - If you want to set a limit for the maximum input resolution, you can set `--max-size`, and the video will be downsampled if min(w, h) exceeds. By default, we don't set the limit.
 
-### uv
-If you install via uv, you may try the following command:
+Or you may directly run via CLI command:
 ```shell
 matanyone2 -i inputs/video/test-sample1 -m inputs/mask/test-sample1.png
 ```
