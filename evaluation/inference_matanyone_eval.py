@@ -1,19 +1,17 @@
 import os
 import cv2
 import tqdm
-import imageio
 import numpy as np
 from PIL import Image
 
 import torch
 import torch.nn.functional as F
 
-from matanyone2.utils.download_util import load_file_from_url
-from matanyone2.utils.inference_utils import gen_dilate, gen_erosion, read_frame_from_videos
-
 from matanyone2.inference.inference_core import InferenceCore
 from matanyone2.utils.get_default_model import get_matanyone2_model
 from matanyone2.utils.device import get_default_device, safe_autocast_decorator
+from matanyone2.utils.inference_utils import gen_dilate, gen_erosion, read_frame_from_videos
+
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -24,10 +22,8 @@ device = get_default_device()
 @safe_autocast_decorator()
 def main(input_path, mask_path, output_path, ckpt_path, n_warmup=10, r_erode=10, r_dilate=10, suffix="", save_image=False, max_size=-1):
 
-    # download ckpt for the first inference
-    pretrain_model_url = "https://github.com/pq-yang/MatAnyone2/releases/download/v1.0.0/matanyone2.pth"
-    ckpt_path = load_file_from_url(pretrain_model_url, 'pretrained_models')
-    
+    video_name = os.path.basename(os.path.dirname(input_path))
+
     # load MatAnyone model
     matanyone2 = get_matanyone2_model(ckpt_path, device)
 
@@ -41,7 +37,7 @@ def main(input_path, mask_path, output_path, ckpt_path, n_warmup=10, r_erode=10,
     max_size = int(max_size)
 
     # load input frames
-    vframes, fps, length, video_name = read_frame_from_videos(input_path)
+    vframes, fps, length, _ = read_frame_from_videos(input_path)
     repeated_frames = vframes[0].unsqueeze(0).repeat(n_warmup, 1, 1, 1) # repeat the first frame for warmup
     vframes = torch.cat([repeated_frames, vframes], dim=0).float()
     length += n_warmup  # update length
@@ -53,8 +49,8 @@ def main(input_path, mask_path, output_path, ckpt_path, n_warmup=10, r_erode=10,
         if min_side > max_size:
             new_h = int(h / min_side * max_size)
             new_w = int(w / min_side * max_size)
-            vframes = F.interpolate(vframes, size=(new_h, new_w), mode="area")
-            print(f'Resize to {new_h}x{new_w} for processing...')
+
+        vframes = F.interpolate(vframes, size=(new_h, new_w), mode="area")
         
     # set output paths
     os.makedirs(output_path, exist_ok=True)
@@ -117,22 +113,25 @@ def main(input_path, mask_path, output_path, ckpt_path, n_warmup=10, r_erode=10,
             fgrs.append(com_np)
             phas.append(pha)
             if save_image:
-                cv2.imwrite(f'{output_path}/{video_name}/fgr/{str(ti-n_warmup).zfill(4)}.png', com_np[...,[2,1,0]])
                 cv2.imwrite(f'{output_path}/{video_name}/pha/{str(ti-n_warmup).zfill(4)}.png', pha)
+                cv2.imwrite(f'{output_path}/{video_name}/fgr/{str(ti-n_warmup).zfill(4)}.png', com_np[...,[2,1,0]])
 
-    phas = np.array(phas)
-    fgrs = np.array(fgrs)
+    # [optional] save videos for better visualization
+    # import imageio
+    
+    # phas = np.array(phas)
+    # fgrs = np.array(fgrs)
 
-    imageio.mimwrite(f'{output_path}/{video_name}_fgr.mp4', fgrs, fps=fps, quality=7)
-    imageio.mimwrite(f'{output_path}/{video_name}_pha.mp4', phas, fps=fps, quality=7)
+    # imageio.mimwrite(f'{output_path}/{video_name}_fgr.mp4', fgrs, fps=fps, quality=7)
+    # imageio.mimwrite(f'{output_path}/{video_name}_pha.mp4', phas, fps=fps, quality=7)
 
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--input_path', type=str, default="inputs/video/test-sample1", help='Path of the input video or frame folder.')
+    parser.add_argument('-i', '--input_path', type=str, default="inputs/video/test-sample1.mp4", help='Path of the input video or frame folder.')
     parser.add_argument('-m', '--mask_path', type=str, default="inputs/mask/test-sample1.png", help='Path of the first-frame segmentation mask.')
     parser.add_argument('-o', '--output_path', type=str, default="results/", help='Output folder. Default: results')
-    parser.add_argument('-c', '--ckpt_path', type=str, default="pretrained_models/matanyone2.pth", help='Path of the MatAnyone2 model.')
+    parser.add_argument('-c', '--ckpt_path', type=str, default="pretrained_models/matanyone.pth", help='Path of the MatAnyone model.')
     parser.add_argument('-w', '--warmup', type=str, default="10", help='Number of warmup iterations for the first frame alpha prediction.')
     parser.add_argument('-e', '--erode_kernel', type=str, default="10", help='Erosion kernel on the input mask.')
     parser.add_argument('-d', '--dilate_kernel', type=str, default="10", help='Dilation kernel on the input mask.')
